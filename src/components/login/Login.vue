@@ -37,6 +37,7 @@ export default {
 
 <template>
   <div>
+    <span>feyre</span>
     <v-card
       class="mx-auto pa-12 pb-8"
       elevation="8"
