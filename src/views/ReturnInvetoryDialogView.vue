@@ -1,5 +1,5 @@
 <script setup>
-import ReturnInvetoryDialog from '../components/inventory/ReturnInvetoryDialog.vue'
+import ReturnInvetoryDialog from '../components/return/ReturnInvetoryDialog.vue'
 </script>
 
 <template>

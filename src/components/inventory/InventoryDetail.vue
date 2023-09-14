@@ -1,6 +1,6 @@
 <script>
 import atlasAPI from '../../services/atlasAPI';
-
+import {sizes} from "../../constants/app";
 const ACTION_TYPE = {
   NEW: 0,
   EDIT: 1,
@@ -10,25 +10,65 @@ export default {
   props:{
     action: -1
   },
-  data() {
-    return {
-      actionType: -1,
+  computed: {
+    actionType() {
+      if (this.$route.query.action) {
+        return parseInt(this.$route.query.action)
+      }
+      return -1;
     }
   },
-  mounted() {
-    if (this.$route.query.action) {
-      const parseAction = parseInt(this.$route.query.action);
-      if (!isNaN(parseAction)) {
-        this.actionType = parseAction
+  data() {
+    return {
+      total_count_small: 0,
+      product_name: "Manas",
+      fileImage: null,
+      product_url: "",
+      product: {
+        "s":  0,
+        "xl":  0,
+        "l":  0,
+        "m":  0,
+      },
+      sizes,
+      rules: {
+          required: value => !!value || 'Required Field.',
+          isnumber: value => (typeof value !== 'number' && value >= 0)|| 'Invalid value.',
       }
     }
   },
   methods: {
-    createInventory() {
-      atlasAPI.createInventory(undefined)
-      .then((test) => {
-        console.log(test);
-      })
+    productImageCB() {
+      var reader  = new FileReader();
+      reader.onloadend = function () {
+        // this.product_url = reader.result;
+      }
+      alert(this.fileImage[0]);
+      if (this.fileImage[0]) {
+        reader.readAsDataURL(this.fileImage[0]);
+      } else {
+        this.product_url = ""
+      }
+    },
+    preparePayload() {
+      return {
+        "_id": `PRODUCT-${this.product_name}`,
+        "product_id": `PRODUCT-${this.product_name}`,
+        "image": this.product_url,
+        "description": this.product_description,
+        "xl": parseInt(this.product.xl),
+        "l": parseInt(this.product.l),
+        "s": parseInt(this.product.s),
+        "m": parseInt(this.product.m)        
+      };
+    },
+    async createInventory() {
+      const payload = this.preparePayload()
+      const inventoryAPIs = await atlasAPI.createInventory(payload);
+      if (inventoryAPIs) {
+        alert();
+      }
+        
     }
   }
 }
@@ -39,96 +79,38 @@ export default {
     <template v-slot:loader="{ isActive }">
       <v-progress-linear :active="isActive" color="deep-purple" height="4" indeterminate></v-progress-linear>
     </template>
-    <v-file-input v-if="actionType === 0" variant="solo-filled" label="Product Image"/>
-    <v-img cover height="250" src="https://cdn.vuetifyjs.com/images/cards/cooking.png"></v-img>
+    <v-file-input accept="image/*" v-if="actionType === 0" v-model="fileImage" @change="productImageCB" variant="solo-filled" label="Product Image"/>
+    <v-img cover height="250" :src="this.product_url"></v-img>
 
     <v-card-item>
-      <v-text-field v-if="actionType === 0" clearable label="Product Name*" variant="solo"></v-text-field>
-      <v-card-title v-else>Cafe Badilico</v-card-title>
+      <v-text-field v-model="product_name" type="number"  label="Product Name*" variant="solo"></v-text-field>
     </v-card-item>
 
     <v-card-text>
-      <v-textarea  v-if="actionType === 0" clearable label="Product Description*" variant="solo"></v-textarea>
-      <div v-else>Small plates, salads & sandwiches - an intimate setting with 12 indoor seats plus patio seating.</div>
+      <v-textarea   label="Product Description*" v-model="product_description" variant="solo"></v-textarea>
     </v-card-text>
 
     <v-divider class="mx-4 mb-1"></v-divider>
 
-    <v-card-title>Size Based Stock's Availability</v-card-title>
+    <v-card-title>stock's Availability</v-card-title>
 
       <v-container fluid class="my-6">
         <v-row id="xl">
-          <v-col cols="3">
-            <v-list-subheader>XL*</v-list-subheader>
-          </v-col>
+          <v-col cols="12" sm="4" md="4" l="4" v-for="size in sizes.list">
+              <v-text-field :label="`${sizes.map[size].key} Size`" v-model="product[size]"
+                :prepend-icon="`mdi-size-${size}`" type="number"></v-text-field>
 
-          <v-col cols="3">
-            <v-text-field label="Total Count" type="number" ></v-text-field>
-          </v-col>
-          <v-col cols="3"  v-if="actionType !== 0">
-            <v-text-field label="Add Count" type="number" ></v-text-field>
-          </v-col>
-          <v-col cols="3"  v-if="actionType !== 0">
-            <div class="totaladdsup"> <span>Total Adds to</span><span>2</span></div>
-          </v-col>
-        </v-row>
-
-        <v-row id="large">
-          <v-col cols="3">
-            <v-list-subheader>Large*</v-list-subheader>
-          </v-col>
-
-          <v-col cols="3">
-            <v-text-field label="Total Count" type="number" ></v-text-field>
-          </v-col>
-          <v-col cols="3"  v-if="actionType !== 0">
-            <v-text-field label="Add Count" type="number" ></v-text-field>
-          </v-col>
-          <v-col cols="3"  v-if="actionType !== 0">
-            <div class="totaladdsup"> <span>Total Adds to</span><span>2</span></div>
-          </v-col>
-        </v-row>
-
-        <v-row id="medium">
-          <v-col cols="3">
-            <v-list-subheader>Medium*</v-list-subheader>
-          </v-col>
-
-          <v-col cols="3">
-            <v-text-field label="Total Count" type="number" ></v-text-field>
-          </v-col>
-          <v-col cols="3"  v-if="actionType !== 0">
-            <v-text-field label="Add Count" type="number" ></v-text-field>
-          </v-col>
-          <v-col cols="3"  v-if="actionType !== 0">
-            <div class="totaladdsup"> <span>Total Adds to</span><span>2</span></div>
-          </v-col>
-        </v-row>
-
-        <v-row id="small">
-          <v-col cols="3">
-            <v-list-subheader>Small*</v-list-subheader>
-          </v-col>
-
-          <v-col cols="3">
-            <v-text-field label="Total Count" type="number" ></v-text-field>
-          </v-col>
-          <v-col cols="3"  v-if="actionType !== 0">
-            <v-text-field label="Add Count" type="number" ></v-text-field>
-          </v-col>
-          <v-col cols="3"  v-if="actionType !== 0">
-            <div class="totaladdsup"> <span>Total Adds to</span><span>2</span></div>
-          </v-col>
+            </v-col>
         </v-row>
       </v-container>
 
     <v-card-actions>
       <template v-if="actionType !== 0">
         <v-btn color="deep-purple-lighten-2" variant="text" @click="reserve">
-          Sale Order
+          Discard
         </v-btn>
         <v-btn color="deep-purple-lighten-2" variant="text" @click="reserve">
-          Return
+          Update
         </v-btn>
     </template>
     <template v-else>

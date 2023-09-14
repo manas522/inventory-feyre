@@ -44,7 +44,8 @@ import atlasAPI from '../../services/atlasAPI';
         <v-list density="compact" nav>
           <RouterLink to="/home"><v-list-item prepend-icon="mdi-home-city" title="Home" value="home"></v-list-item></RouterLink>
           <RouterLink to="/home/inventory"><v-list-item prepend-icon="mdi-account" title="Inventory" value="inventory"></v-list-item></RouterLink>
-          <RouterLink to="/home"><v-list-item prepend-icon="mdi-account-group-outline" title="Users" value="users"></v-list-item></RouterLink>
+          <RouterLink to="/home/sale"><v-list-item prepend-icon="mdi-shopping" title="Sale" value="sale"></v-list-item></RouterLink>
+          <RouterLink to="/home/return"><v-list-item prepend-icon="mdi-keyboard-return" title="Return" value="return"></v-list-item></RouterLink>
           <v-list-item prepend-icon="mdi-logout-variant" @click.stop="logout" title="Logout" value="Logout"></v-list-item>
         </v-list>
       </v-navigation-drawer>

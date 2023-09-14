@@ -1,96 +1,18 @@
 <script>
+import atlasAPI from '../../services/atlasAPI';
+import {sizes} from "../../constants/app";
+
 export default {
+  mounted() {
+    atlasAPI.readAllInventory()
+    .then((result) => this.inventories = result);
+  },
   data() {
     return {
       drawer: true,
       rail: true,
-      folders: [
-        {
-          subtitle: 'Jan 9, 2014',
-          title: 'Photos',
-        },
-        {
-          subtitle: 'Jan 17, 2014',
-          title: 'Recipes',
-        },
-        {
-          subtitle: 'Jan 28, 2014',
-          title: 'Work',
-        },
-
-        {
-          subtitle: 'Jan 9, 2014',
-          title: 'Photos',
-        },
-        {
-          subtitle: 'Jan 17, 2014',
-          title: 'Recipes',
-        },
-        {
-          subtitle: 'Jan 28, 2014',
-          title: 'Work',
-        },
-        {
-          subtitle: 'Jan 9, 2014',
-          title: 'Photos',
-        },
-        {
-          subtitle: 'Jan 17, 2014',
-          title: 'Recipes',
-        },
-        {
-          subtitle: 'Jan 28, 2014',
-          title: 'Work',
-        },
-        {
-          subtitle: 'Jan 9, 2014',
-          title: 'Photos',
-        },
-        {
-          subtitle: 'Jan 17, 2014',
-          title: 'Recipes',
-        },
-        {
-          subtitle: 'Jan 28, 2014',
-          title: 'Work',
-        },
-        {
-          subtitle: 'Jan 9, 2014',
-          title: 'Photos',
-        },
-        {
-          subtitle: 'Jan 17, 2014',
-          title: 'Recipes',
-        },
-        {
-          subtitle: 'Jan 28, 2014',
-          title: 'Work',
-        },
-        {
-          subtitle: 'Jan 9, 2014',
-          title: 'Photos',
-        },
-        {
-          subtitle: 'Jan 17, 2014',
-          title: 'Recipes',
-        },
-        {
-          subtitle: 'Jan 28, 2014',
-          title: 'Work',
-        },
-        {
-          subtitle: 'Jan 9, 2014',
-          title: 'Photos',
-        },
-        {
-          subtitle: 'Jan 17, 2014',
-          title: 'Recipes',
-        },
-        {
-          subtitle: '<span>Jan 28, 2014</span>',
-          title: 'Work',
-        },
-      ],
+      sizes,
+      inventories: [],
     }
   },
 }
@@ -112,21 +34,24 @@ export default {
     <v-row class="inventory__product-list">
       <v-col>
         <v-list lines="two">
-          <v-list-item v-for="folder in folders" :key="folder.title" :title="folder.title">
+          <v-list-item v-for="inventory in inventories" :key="inventory.title" :title="inventory.title">
             <v-list-item-subtitle>
-              <v-chip-group>
-                <v-chip>XL</v-chip>
-
-                <v-chip>Large: </v-chip>
-
-                <v-chip>Small</v-chip>
+              {{ inventory.product_id }}
+              <v-chip-group filter>
+              <v-chip size="small" color="info" :prepend-icon="`mdi-size-${size}`"  v-for="size in sizes.list">
+                   {{ inventory[size] ?? 0
+                }}</v-chip>
               </v-chip-group>
             </v-list-item-subtitle>
             <template v-slot:prepend>
-              <v-avatar image="https://cdn.vuetifyjs.com/images/lists/1.jpg" size="75"></v-avatar>
+              <v-avatar v-if="inventory.image !== ''" :image="inventory.image" size="75"></v-avatar>
+              <v-avatar v-else color="info">
+                <v-icon  icon="mdi-tshirt-crew" size="x-large"></v-icon>
+              </v-avatar>
             </template>
+            <v-divider></v-divider>
             <template v-slot:append>
-              <router-link :to="{ name: 'invetory-detail-page', params: { id: 123 }}">
+              <router-link :to="{ name: 'invetory-detail-page', params: { id: inventory.product_id }, query: { action: 1 }}">
                 <v-btn @click="" color="grey-lighten-1" icon="mdi-chevron-right" variant="text"></v-btn>
               </router-link>
             </template>

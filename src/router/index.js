@@ -3,8 +3,8 @@ import LoginView from '../views/LoginView.vue'
 import HomeView from '../views/HomeView.vue'
 import InventoryView from '../views/InventoryView.vue'
 import InventoryDetailView from "../views/InventoryDetailView.vue";
-import OrderInvetoryDialogView from "../views/OrderInvetoryDialogView.vue";
-import ReturnInvetoryDialogView from "../views/ReturnInvetoryDialogView.vue";
+import SaleView from "../views/SaleView.vue"
+import ReturnView from "../views/ReturnView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +22,12 @@ const router = createRouter({
       // which is lazy-loaded when the route is visited.
       component: HomeView,
       children: [{
+        path: 'sale',
+        component: SaleView
+      },{
+        path: 'return',
+        component: ReturnView
+      },{
         path: 'inventory',
         component: InventoryView
       },
@@ -30,17 +36,9 @@ const router = createRouter({
         name: 'inventory-edit-new',
         component: InventoryDetailView
       }, {
-        path: 'inventory/:id',
+        path: 'inventory/edit/:id',
         name: 'invetory-detail-page',
         component: InventoryDetailView
-      }, {
-        path: 'inventory/:id/sale',
-        name: 'invetory-sale-page',
-        component: OrderInvetoryDialogView
-      }, {
-        path: 'inventory/:id/return',
-        name: 'invetory-return-page',
-        component: ReturnInvetoryDialogView
       }]
     }
   ]

@@ -24,17 +24,15 @@ export default {
         return this.app.currentUser.logOut();
     },
     async createInventory(product) {
-        product = {
-            "product_id": "Mnas",
-            "image": "url",
-            "description": "test",
-            "xl": 10,
-            "large": 10,
-            "small": 10,
-            "medium": 10
-          };
+        // type checking;
         const mongo = this.app.currentUser.mongoClient(this.DATA_SOURCE_NAME);
         const inventoryCollection = mongo.db(this.DATABASE_NAME).collection(this.COLLECTION_NAME);
         inventoryCollection.insertOne(product)
+    },
+    async readAllInventory() {
+        // type checking;
+        const mongo = this.app.currentUser.mongoClient(this.DATA_SOURCE_NAME);
+        const inventoryCollection = mongo.db(this.DATABASE_NAME).collection(this.COLLECTION_NAME);
+        return inventoryCollection.find({})
     }
 };
