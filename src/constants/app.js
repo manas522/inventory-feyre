@@ -4,6 +4,7 @@ export const errorCode = {
     2: "warning",
     3: "error"
 }
+export const resellers = ['flipkart', 'meesho', 'ajio'];
 export const sizes = {
     list: ["m", "xl", "s", "l"],
     map: {
