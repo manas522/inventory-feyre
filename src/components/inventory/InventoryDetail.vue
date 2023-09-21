@@ -1,6 +1,6 @@
 <script>
 import atlasAPI from '../../services/atlasAPI';
-import {sizes} from "../../constants/app";
+import {sizes, resellers} from "../../constants/app";
 const ACTION_TYPE = {
   NEW: 0,
   EDIT: 1,
@@ -51,7 +51,7 @@ export default {
       }
     },
     preparePayload() {
-      return {
+      const payload = {
         "_id": `PRODUCT-${this.product_name}`,
         "product_id": `PRODUCT-${this.product_name}`,
         "image": this.product_url,
@@ -59,8 +59,19 @@ export default {
         "xl": parseInt(this.product.xl),
         "l": parseInt(this.product.l),
         "s": parseInt(this.product.s),
-        "m": parseInt(this.product.m)        
+        "m": parseInt(this.product.m),
       };
+      const allresllers = {}
+      resellers.concat(["damage"]).forEach(seller => {
+        allresllers[seller] = {};
+        sizes.list.forEach((size) => {
+            allresllers[seller][size] = 0
+        });
+      });
+      return {
+        ...payload,
+        ...allresllers
+      }
     },
     async createInventory() {
       const payload = this.preparePayload()

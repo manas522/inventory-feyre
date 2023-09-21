@@ -6,6 +6,15 @@ export default {
 
   },
   computed: {
+    totalQuantity() {
+      let total = 0;
+      if (this.product) {
+        sizes.list.forEach((size) => {
+            total += this.product[size]
+        });
+      }
+      return total;
+    },
     sellersTotal() {
       const allresllers = {}
       resellers.forEach(seller => {
@@ -37,7 +46,7 @@ export default {
       resellers,
       ...allresllers,
       product,
-      products: ["product-23", "product-23", "product-33"],
+      products: [],
       quantity: 0
     }
   },
@@ -55,14 +64,32 @@ export default {
       atlasAPI.readInputInventory(event.target.value)
         .then((result) => {
           if (result && result.length) {
-            this.products.splice(0, this.products.length)
+            this.products.splice(0, this.products.length);
+            result = result.map(item => ({name: item.product_id}))
             this.products.push(...result);
           }
-          console.log(result);
+          console.log(this.products);
         });
     },
-    doneEditing() {
-      this.isEditing = !this.isEditing;
+    sellerSizeCount(seller, size) {
+      console.log(seller, size, this.product)
+      if (this.product && this.product[seller] && this.product[seller][size] !== undefined) {
+        return this.product[seller][size];
+      }
+       return 0;
+    },
+    selectProduct(productID) {
+      this.productID = productID;
+      atlasAPI.readProductInventory(productID)
+      .then(result => {
+        if (result !== undefined) {
+          this.product = {
+            ...result
+          }
+        }
+        this.isEditing = !this.isEditing;
+      })
+       
     }
   },
 }
@@ -71,21 +98,28 @@ export default {
   <v-row>
     <v-col cols="12" sm="10" md="10">
       <v-autocomplete v-model="productID" @input="autosearch"
-        :hint="!isEditing ? 'Click the icon to edit' : 'Click the icon to save'" :items="products.map((item) => item.product_id)" :readonly="!isEditing"
+        :hint="!isEditing ? 'Click the icon to edit' : 'Click the icon to save'" :items="products" item-title="name" :readonly="!isEditing"
         :label="`Products — ${isEditing ? 'Editable' : 'Readonly'}`" persistent-hint prepend-icon="mdi-city">
         <template v-slot:append>
           <v-slide-x-reverse-transition mode="out-in">
             <v-icon :key="`icon-${isEditing}`" :color="isEditing ? 'success' : 'info'"
               :icon="isEditing ? 'mdi-check-outline' : 'mdi-circle-edit-outline'"
-              @click="doneEditing"></v-icon>
+              @click="isEditing = !isEditing"></v-icon>
           </v-slide-x-reverse-transition>
         </template>
+        <template v-slot:item="{ props, item }">
+                <v-list-item
+                  @pointerdown="() => selectProduct(item?.raw?.name)"
+                  v-bind="props"
+                  :title="item?.raw?.name"
+                ></v-list-item>
+              </template>
       </v-autocomplete>
     </v-col>
     <v-col cols="12" sm="2" md="2">
       <v-card width="100%">
         <v-card-text class="text-h6" elevate="0">
-          <v-badge :content="quantity">
+          <v-badge :content="totalQuantity">
             <v-icon icon="mdi-tshirt-crew" color="info"></v-icon>
           </v-badge>
         </v-card-text>
@@ -96,7 +130,7 @@ export default {
     <v-row>
       <v-chip-group filter>
         <v-chip size="large" :prepend-icon="`mdi-size-${size}`" v-for="size in sizes.list">
-          Size Quantity {{ product[size]
+            {{ product[size]
           }}</v-chip>
       </v-chip-group>
     </v-row>
@@ -112,9 +146,10 @@ export default {
         <v-card-text>
           <v-row>
             <v-col cols="12" sm="4" md="4" l="4" v-for="size in sizes.list">
-              <v-text-field :label="`${sizes.map[size].key} Size`" v-model="this[seller][size]"
-                :prepend-icon="`mdi-size-${size}`" type="number"></v-text-field>
-
+              <v-badge :content="sellerSizeCount(seller, size)" color="info">
+                <v-text-field :label="`${sizes.map[size].key} Size`" v-model="this[seller][size]"
+                  :prepend-icon="`mdi-size-${size}`" type="number"></v-text-field>
+                </v-badge>
             </v-col>
           </v-row>
         </v-card-text>

@@ -36,6 +36,13 @@ export default {
         const inventoryCollection = mongo.db(this.DATABASE_NAME).collection(this.COLLECTION_NAME);
         return inventoryCollection.find({})
     },
+    async readProductInventory(product_id) {
+        // type checking;
+        console.log("product_id", product_id)
+        const mongo = this.app.currentUser.mongoClient(this.DATA_SOURCE_NAME);
+        const inventoryCollection = mongo.db(this.DATABASE_NAME).collection(this.COLLECTION_NAME);
+        return inventoryCollection.findOne({product_id})
+    },
     async readInputInventory(substr) {
         // type checking;
         const mongo = this.app.currentUser.mongoClient(this.DATA_SOURCE_NAME);
