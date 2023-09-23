@@ -1,5 +1,6 @@
 import * as Realm from "realm-web";
 import {sizes} from "../constants/app";
+import {bulkSellReturnPayloadResellerCheck, prepareReturnSellerAPIQuery} from "../utility/apisUtils";
 export default {
     emailID: "manas522@gmail.com",
     password: "aryan123",
@@ -63,6 +64,14 @@ export default {
         const mongo = this.app.currentUser.mongoClient(this.DATA_SOURCE_NAME);
         const inventoryCollection = mongo.db(this.DATABASE_NAME).collection(this.COLLECTION_NAME);
         return inventoryCollection.updateOne({ product_id}, { $inc: {[size]: 1 }})
+    },
+    async bulkSellReturn(product_id, payload) {
+        if (!bulkSellReturnPayloadResellerCheck(payload)) return;
+        const query = prepareReturnSellerAPIQuery(payload);
+        // type checking;
+        const mongo = this.app.currentUser.mongoClient(this.DATA_SOURCE_NAME);
+        const inventoryCollection = mongo.db(this.DATABASE_NAME).collection(this.COLLECTION_NAME);
+        return inventoryCollection.updateOne({ product_id}, { $inc: query})
     },
     async return(product_id, size, orderID) {
         if (typeof product_id !== typeof ""){

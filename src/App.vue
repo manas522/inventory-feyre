@@ -19,16 +19,7 @@ export default {
 }
 </script>
 <template>
-  <RouterView />
-    <v-alert
-        v-if="$store.state.app.error.enable"
-        :color="$store.getters['app/errorcode']"
-        :icon="`$${$store.getters['app/errorcode'].toLowerCase()}`"
-        :title="$store.getters['app/errorcode']"
-        closable
-        :text="$store.state.app.error.message"
-    ></v-alert>
-
+    <RouterView />
 </template>
 
 <style scoped>

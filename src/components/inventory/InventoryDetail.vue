@@ -50,7 +50,7 @@ export default {
         this.product_url = ""
       }
     },
-    preparePayload() {
+    prepareNewInventoryPayload() {
       const payload = {
         "_id": `PRODUCT-${this.product_name}`,
         "product_id": `PRODUCT-${this.product_name}`,
@@ -60,6 +60,12 @@ export default {
         "l": parseInt(this.product.l),
         "s": parseInt(this.product.s),
         "m": parseInt(this.product.m),
+        "original_inventory": {
+          "xl": parseInt(this.product.xl),
+          "l": parseInt(this.product.l),
+          "s": parseInt(this.product.s),
+          "m": parseInt(this.product.m),
+        }
       };
       const allresllers = {}
       resellers.concat(["damage"]).forEach(seller => {
@@ -74,12 +80,8 @@ export default {
       }
     },
     async createInventory() {
-      const payload = this.preparePayload()
-      const inventoryAPIs = await atlasAPI.createInventory(payload);
-      if (inventoryAPIs) {
-        alert();
-      }
-        
+      const payload = this.prepareNewInventoryPayload()
+      await atlasAPI.createInventory(payload);
     }
   }
 }

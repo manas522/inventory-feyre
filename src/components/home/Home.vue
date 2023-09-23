@@ -50,7 +50,18 @@ import atlasAPI from '../../services/atlasAPI';
         </v-list>
       </v-navigation-drawer>
       <v-main>
+        <v-alert
+        v-if="$store.state.app.error.enable"
+        :color="$store.getters['app/errorcode']"
+        :icon="`$${$store.getters['app/errorcode'].toLowerCase()}`"
+        :title="$store.getters['app/errorcode']"
+        closable
+        :text="$store.state.app.error.message"
+    ></v-alert>
+        <div style="height: 100%; overflow: scroll; width:100%">
         <RouterView></RouterView>
+        </div>
       </v-main>
     </v-layout>
+
 </template>
