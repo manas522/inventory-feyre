@@ -7,8 +7,10 @@ export default {
     DATA_SOURCE_NAME: "inventory",
     DATABASE_NAME: "rme-feyre",
     COLLECTION_NAME: "inventory",
+    ORDER_COLLECTION_NAME: "order",
+    RETURN_COLLECTION_NAME: "returns",
     async init () {
-        this.app = new Realm.App({ id: "application-0-euwwb" });
+        window.mongoApp = this.app = new Realm.App({ id: "application-0-euwwb" });
     },
     async loginEmailPassword (email, password) {
         // Create an email/password credential
@@ -27,9 +29,10 @@ export default {
     },
     async createInventory(product) {
         // type checking;
-        const mongo = this.app.currentUser.mongoClient(this.DATA_SOURCE_NAME);
-        const inventoryCollection = mongo.db(this.DATABASE_NAME).collection(this.COLLECTION_NAME);
-        inventoryCollection.insertOne(product)
+        if (product === null || typeof product !== typeof {}) {
+            throw `Error Type in parameter, inventory as product expected as object"`
+        }
+        await this.app.currentUser.functions.post_inventory(product);
     },
     async readAllInventory() {
         // type checking;
@@ -39,10 +42,15 @@ export default {
     },
     async readProductInventory(product_id) {
         // type checking;
-        console.log("product_id", product_id)
-        const mongo = this.app.currentUser.mongoClient(this.DATA_SOURCE_NAME);
-        const inventoryCollection = mongo.db(this.DATABASE_NAME).collection(this.COLLECTION_NAME);
-        return inventoryCollection.findOne({product_id})
+        const response = await this.app.currentUser.functions.get_inventory(product_id)
+        return response
+        // return this.app.currentUser.functions.get_inventory(product_id)
+    },
+    async putInventory(product_id, query) {
+        // type checking;
+        const response = await this.app.currentUser.functions.put_inventory(product_id, query)
+        return response
+        // return this.app.currentUser.functions.get_inventory(product_id)
     },
     async readInputInventory(substr) {
         // type checking;
@@ -72,6 +80,24 @@ export default {
         const mongo = this.app.currentUser.mongoClient(this.DATA_SOURCE_NAME);
         const inventoryCollection = mongo.db(this.DATABASE_NAME).collection(this.COLLECTION_NAME);
         return inventoryCollection.updateOne({ product_id}, { $inc: query})
+    },
+    async newOrder(productID, orderQuery) {
+        if (orderQuery === null || typeof orderQuery !== typeof {}) {
+            throw `Error Type in parameter, inventory expected as object"`
+        }
+        const query = prepareReturnSellerAPIQuery(orderQuery);
+        this.app.currentUser.functions.post_order(productID, query);
+    },
+    async returnOrder(productID, orderQuery, returnOrder) {
+        if (orderQuery === null || typeof orderQuery !== typeof {}) {
+            throw `Error Type in parameter, inventory expected as object"`
+        }
+        if (returnOrder === null || typeof returnOrder !== typeof {}) {
+            throw `Error Type in parameter, inventory expected as object"`
+        }
+        const orderQueryPayload = prepareReturnSellerAPIQuery(orderQuery);
+        const returnQueryPayload = prepareReturnSellerAPIQuery(returnOrder);
+        this.app.currentUser.functions.post_return(productID, orderQueryPayload, returnQueryPayload);
     },
     async return(product_id, size, orderID) {
         if (typeof product_id !== typeof ""){

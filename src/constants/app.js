@@ -14,7 +14,7 @@ export const sizes = {
             key: "small",
         },
         "xl": {
-            key: "x-larege",
+            key: "x-large",
         },
         "l": {
             key: "large",

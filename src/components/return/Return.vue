@@ -1,5 +1,5 @@
 <script>
-import { sizes, resellers, RETURN_MULTIPLIER } from "../../constants/app.js";
+import { sizes, resellers, RETURN_MULTIPLIER, SALE_MULTIPLIER } from "../../constants/app.js";
 import atlasAPI from "../../services/atlasAPI";
 export default {
   mounted() {
@@ -52,22 +52,25 @@ export default {
   },
   methods: {
     saveReturn() {
-      const payload = this.preparePayload();
-      atlasAPI.bulkSellReturn(this.productID, payload)
+      const {returnQuery, orderQuery} = this.preparePayload();
+      atlasAPI.returnOrder(this.productID, orderQuery, returnQuery)
     },
     preparePayload() {
-      const payload = {}
+      const orderQuery = {}
+      const returnQuery = {}
       resellers.forEach(seller => {
         sizes.list.forEach((size) => {
           if (this.allresllers[seller][size] !== 0 && !isNaN(parseInt(this.allresllers[seller][size]))) {
-            if (!payload[seller]) {
-              payload[seller] = {}
+            if (!returnQuery[seller]) {
+              returnQuery[seller] = {}
+              orderQuery[seller] = {}
             }
-            payload[seller][size] = RETURN_MULTIPLIER * parseInt(this.allresllers[seller][size]);
+            returnQuery[seller][size] = SALE_MULTIPLIER * parseInt(this.allresllers[seller][size]);
+            orderQuery[seller][size] = RETURN_MULTIPLIER * parseInt(this.allresllers[seller][size]);
           }
         });
       });
-      return payload;
+      return {returnQuery, orderQuery};
     },
     autosearch(event) {
       atlasAPI.readInputInventory(event.target.value)

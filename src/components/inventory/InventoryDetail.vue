@@ -1,16 +1,35 @@
 <script>
 import atlasAPI from '../../services/atlasAPI';
 import {sizes, resellers} from "../../constants/app";
+import { getIDFromProduct } from "../../utility/appUtils";
 const ACTION_TYPE = {
   NEW: 0,
   EDIT: 1,
   DELETE: 2
 }
 export default {
+  async mounted() {
+    if (this.actionType !== 0) {
+      // read inventory
+      // console.log("hello", this.id, this.$route.params.id);
+      const inventoryDetails = await atlasAPI.readProductInventory(this.paramID);
+      if (inventoryDetails.code === 200) {
+        this.inventoryResponse = inventoryDetails.response;
+        this.updateReactiveData(inventoryDetails.response);
+      }
+      console.log(inventoryDetails)
+    }
+  },
   props:{
     action: -1
   },
   computed: {
+    paramID() {
+      if (this.$route.params.id) {
+        return this.$route.params.id;
+      }
+      return -1;
+    },
     actionType() {
       if (this.$route.query.action) {
         return parseInt(this.$route.query.action)
@@ -21,9 +40,10 @@ export default {
   data() {
     return {
       total_count_small: 0,
-      product_name: "Manas",
+      product_id: "",
       fileImage: null,
       product_url: "",
+      product_description: "",
       product: {
         "s":  0,
         "xl":  0,
@@ -38,6 +58,16 @@ export default {
     }
   },
   methods: {
+    updateReactiveData(payloadData) {
+      this.product_id = getIDFromProduct(payloadData._id);
+      this.product_description = payloadData.description;
+      this.product_url = payloadData.image;
+      for (let i  = 0; i < sizes.list.length; i += 1) {
+        if (payloadData[sizes.list[i]] !== undefined) {
+          this.product[sizes.list[i]] = payloadData[sizes.list[i]]
+        }
+      }
+    },
     productImageCB() {
       var reader  = new FileReader();
       reader.onloadend = function () {
@@ -52,20 +82,14 @@ export default {
     },
     prepareNewInventoryPayload() {
       const payload = {
-        "_id": `PRODUCT-${this.product_name}`,
-        "product_id": `PRODUCT-${this.product_name}`,
+        "_id": `PRODUCT-${this.product_id}`,
+        "product_id": `PRODUCT-${this.product_id}`,
         "image": this.product_url,
         "description": this.product_description,
         "xl": parseInt(this.product.xl),
         "l": parseInt(this.product.l),
         "s": parseInt(this.product.s),
         "m": parseInt(this.product.m),
-        "original_inventory": {
-          "xl": parseInt(this.product.xl),
-          "l": parseInt(this.product.l),
-          "s": parseInt(this.product.s),
-          "m": parseInt(this.product.m),
-        }
       };
       const allresllers = {}
       resellers.concat(["damage"]).forEach(seller => {
@@ -78,6 +102,51 @@ export default {
         ...payload,
         ...allresllers
       }
+    },
+    returnBack() {
+      this.$router.go(-1);
+    },
+    async updateInventory() {
+      const queryPayload = {}
+      if (this.product_description !== this.inventoryResponse.description) {
+        if (queryPayload.$set === undefined) {
+          queryPayload.$set = {}
+        }
+        queryPayload.$set = {
+          ...queryPayload.$set,
+          description: this.product_description
+        }
+      }
+      if (this.product_url !== this.inventoryResponse.image) {
+        if (queryPayload.$set === undefined) {
+          queryPayload.$set = {}
+        }
+        queryPayload.$set = {
+          ...queryPayload.$set,
+          image: this.product_url
+        }
+      }
+      const updateQuery = {}
+      for (let i = 0; i < sizes.list.length; i += 1) {
+        const size = sizes.list[i];
+        const newQuantity = parseInt(this.product[size]);
+        const existingQuantity = parseInt(this.inventoryResponse[size]);
+        if (newQuantity !== existingQuantity) {
+            if (updateQuery.$inc === undefined) {
+              updateQuery.$inc = {}
+            }
+            updateQuery.$inc = {
+              ...updateQuery.$inc,
+              [size]: newQuantity - existingQuantity
+            }
+        }
+      }
+      const finalQuery = {
+        ...updateQuery,
+        ...queryPayload
+      }
+      const response = await atlasAPI.putInventory(this.inventoryResponse.product_id, finalQuery);
+      console.log("responmse", response);
     },
     async createInventory() {
       const payload = this.prepareNewInventoryPayload()
@@ -96,7 +165,7 @@ export default {
     <v-img cover height="250" :src="this.product_url"></v-img>
 
     <v-card-item>
-      <v-text-field v-model="product_name" type="number"  label="Product Name*" variant="solo"></v-text-field>
+      <v-text-field v-model="product_id" type="number" :disabled="actionType === 1" label="Product Name*" variant="solo"></v-text-field>
     </v-card-item>
 
     <v-card-text>
@@ -119,10 +188,10 @@ export default {
 
     <v-card-actions>
       <template v-if="actionType !== 0">
-        <v-btn color="deep-purple-lighten-2" variant="text" @click="reserve">
+        <v-btn color="deep-purple-lighten-2" variant="text" @click="returnBack">
           Discard
         </v-btn>
-        <v-btn color="deep-purple-lighten-2" variant="text" @click="reserve">
+        <v-btn color="deep-purple-lighten-2" variant="text" @click="updateInventory">
           Update
         </v-btn>
     </template>

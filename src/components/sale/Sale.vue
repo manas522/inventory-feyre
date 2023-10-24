@@ -51,22 +51,22 @@ export default {
   },
   methods: {
     saveReturn() {
-      const payload = this.preparePayload();
-      atlasAPI.bulkSellReturn(this.productID, payload)
+      const inventoryQuery = this.preparePayload();
+      atlasAPI.newOrder(this.productID, inventoryQuery)
     },
     preparePayload() {
-      const payload = {}
+      const orderQuery = {};
       resellers.forEach(seller => {
         sizes.list.forEach((size) => {
           if (this.allresllers[seller][size] !== 0 && !isNaN(parseInt(this.allresllers[seller][size]))) {
-            if (!payload[seller]) {
-              payload[seller] = {}
+            if (!orderQuery[seller]) {
+              orderQuery[seller] = {}
             }
-            payload[seller][size] = SALE_MULTIPLIER * parseInt(this.allresllers[seller][size]);
+            orderQuery[seller][size] = SALE_MULTIPLIER * parseInt(this.allresllers[seller][size]);
           }
         });
       });
-      return payload;
+      return orderQuery;
     },
     autosearch(event) {
       atlasAPI.readInputInventory(event.target.value)
